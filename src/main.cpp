@@ -50,19 +50,5 @@ int main(int argc, char** argv) {
         server->serve();
     });
     t1.join();
-    // MitieNerProcessor processor(argv[1]);
-    // ifstream ifs("./test_data/cnn_article.txt");
-    // ostringstream oss;
-    // char c;
-    // while (ifs.get(c)) {
-    //     oss << c;
-    // }
-    // auto result = processor.process(oss.str());
-    // for (auto elem: result) {
-    //     ostringstream line;
-    //     line << get<0>(elem) << "\t" << get<1>(elem) << "\t" << get<2>(elem);
-    //     LOG(INFO) << line.str();
-    // }
     LOG(INFO) << "end";
-
 }
