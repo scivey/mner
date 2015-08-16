@@ -1,4 +1,4 @@
-namespace cpp2 scivey.mner
+namespace cpp2 scivey.mner.services
 
 enum EntityType {
     PERSON = 0,
