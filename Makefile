@@ -1,5 +1,6 @@
 CXX=clang++-3.5 -stdlib=libstdc++
-CPPFLAGS=-I./src -I./src/gen-cpp2 --std=c++14 -O0
+INC=-I./src -I./src/gen-cpp2 -I./external/gtest-1.7.0-min/include
+CPPFLAGS=$(INC) --std=c++14 -O0
 LINK=-lmitie -lthrift -lthriftcpp2 -lfolly -lglog -latomic -pthread
 
 TEST_OBJ = $(addprefix ./src/test/, \
@@ -30,14 +31,16 @@ THRIFT_OBJ = $(addsuffix .o, $(THRIFT_ITEMS))
 runner: $(MAIN_OBJ) $(THRIFT_OBJ)
 	$(CXX) $(CPPFLAGS) $(MAIN_OBJ) $(THRIFT_OBJ) -o $@ $(LINK)
 
+GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
+
 test_runner: $(LIB_OBJ) $(THRIFT_OBJ) $(TEST_OBJ)
-	$(CXX) $(CPPFLAGS) $(TEST_OBJ) $(LIB_OBJ) -o $@ $(LINK)
+	$(CXX) $(CPPFLAGS) $(TEST_OBJ) $(LIB_OBJ) -o $@ $(GTEST_LIB) $(LINK)
 
 run: runner
 	./runner ./test_data/MITIE-models/english/ner_model.dat ./test_data/cnn_article.txt
 
 clean:
-	rm -f runner src/*.o
+	rm -f runner src/*.o src/test/*.o
 
 .PHONY: clean run
 
