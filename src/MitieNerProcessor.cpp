@@ -1,68 +1,46 @@
 #include "MitieNerProcessor.h"
-
 #include <string>
 #include <sstream>
+#include <memory>
 #include <vector>
 #include <tuple>
 
-#include <mitie/conll_tokenizer.h>
+#include <glog/logging.h>
+
 #include <mitie/named_entity_extractor.h>
+
+#include "MitieTokenizer.h"
+#include "MitieEntityExtractor.h"
+#include "gen-cpp2/NerTagger_types.h"
+
 
 using namespace std;
 using mitie::conll_tokenizer;
 using mitie::named_entity_extractor;
+using scivey::mner::services::EntityType;
 
 namespace scivey {
 namespace mner {
 
-vector<string> tokenizeString(const string &str) {
-    istringstream textStream(str);
-    conll_tokenizer tokenizer(textStream);
-    vector<string> tokens;
-    string token;
-    while (tokenizer(token)) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
+MitieNerProcessor::MitieNerProcessor(){}
 
-void MitieNerProcessor::initExtractor() {
-    dlib::deserialize(modelPath_) >> classname_ >> ner_;
-    tagStrings_ = ner_.get_tag_name_strings();
-}
+MitieNerProcessor::MitieNerProcessor(shared_ptr<MitieTokenizer> tokenizer, shared_ptr<MitieEntityExtractor> extractor):
+    tokenizer_(tokenizer), extractor_(extractor) {}
 
-MitieNerProcessor::MitieNerProcessor(const string &modelPath):
-    modelPath_(modelPath) {
-        initExtractor();
-}
+vector<tuple<EntityType, string, double>> MitieNerProcessor::process(const string &text, double confidenceThreshold) {
+    auto tokens = tokenizer_->tokenizeString(text);
+    auto result = extractor_->extract(tokens);
 
-vector<tuple<string, string, double>> MitieNerProcessor::process(const string &text, double confidenceThreshold) {
-    auto tokens = tokenizeString(text);
-    vector<pair<unsigned long, unsigned long>> chunks;
-    vector<unsigned long> chunk_tags;
-    vector<double> chunk_scores;
-    vector<tuple<string, string, double>> output;
-    ner_.predict(tokens, chunks, chunk_tags, chunk_scores);
-
-    for (size_t i = 0; i < chunks.size(); ++i) {
-        if (chunk_scores[i] > confidenceThreshold) {
-            ostringstream currentEntityText;
-            size_t end = chunks[i].second;
-            for (size_t j = chunks[i].first; j < end; ++j) {
-                currentEntityText << tokens[j];
-                if (j < end) {
-                   currentEntityText << " ";
-                }
-            }
-            output.emplace_back(
-                tagStrings_[chunk_tags[i]],
-                currentEntityText.str(),
-                chunk_scores[i]
-            );
+    vector<tuple<EntityType, string, double>> output;
+    for (auto elem: result) {
+        if (get<2>(elem) > confidenceThreshold) {
+            output.push_back(elem);
         }
     }
     return output;
 }
+
+MitieNerProcessor::~MitieNerProcessor(){}
 
 } // mner
 } // scivey

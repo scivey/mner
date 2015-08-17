@@ -2,29 +2,34 @@
 
 #include <string>
 #include <sstream>
+#include <memory>
 #include <vector>
 #include <tuple>
 
 #include <mitie/conll_tokenizer.h>
 #include <mitie/named_entity_extractor.h>
 
+#include "MitieTokenizer.h"
+#include "MitieEntityExtractor.h"
+#include "gen-cpp2/NerTagger_types.h"
 
-namespace { using namespace std; }
+namespace {
+    using namespace std;
+    using scivey::mner::services::EntityType;
+}
 
 namespace scivey {
 namespace mner {
 
-vector<string> tokenizeString(const string &str);
-
 class MitieNerProcessor {
-    mitie::named_entity_extractor ner_;
-    string modelPath_;
-    string classname_;
-    vector<string> tagStrings_;
-    void initExtractor();
+    shared_ptr<MitieTokenizer> tokenizer_;
+    shared_ptr<MitieEntityExtractor> extractor_;
+protected:
+    MitieNerProcessor();
 public:
-    MitieNerProcessor(const string &modelPath);
-    vector<tuple<string, string, double>> process(const string &text, double confidenceThreshold = 0.5);
+    MitieNerProcessor(shared_ptr<MitieTokenizer> tokenizer, shared_ptr<MitieEntityExtractor> extractor);
+    virtual vector<tuple<EntityType, string, double>> process(const string &text, double confidenceThreshold = 0.5);
+    virtual ~MitieNerProcessor();
 };
 
 } // mner

@@ -21,13 +21,18 @@
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
 
 #include "MitieNerProcessor.h"
-#include "MitieNerServiceWorker.h"
+#include "MitieTokenizer.h"
+#include "MitieEntityExtractor.h"
+#include "NerThriftService.h"
 #include "gen-cpp2/NerTagger.h"
 
 using namespace folly;
 using namespace std;
 using scivey::mner::MitieNerProcessor;
-using scivey::mner::MitieNerServiceWorker;
+using scivey::mner::MitieTokenizer;
+using scivey::mner::NerThriftService;
+using scivey::mner::MitieEntityExtractor;
+
 
 using scivey::mner::services::NerTaggerSvIf;
 using scivey::mner::services::NerItem;
@@ -38,9 +43,10 @@ int main(int argc, char** argv) {
     LOG(INFO) << "start";
     string modelPath = argv[1];
     thread t1([modelPath](){
-        LOG(INFO) << "loading MITIE ner model...";
-        auto processor = folly::make_unique<MitieNerProcessor>(modelPath);
-        auto service = make_shared<MitieNerServiceWorker>(std::move(processor));
+        auto extractor = make_shared<MitieEntityExtractor>(modelPath);
+        auto tokenizer = make_shared<MitieTokenizer>();
+        auto processor = make_shared<MitieNerProcessor>(tokenizer, extractor);
+        auto service = make_shared<NerThriftService>(processor);
         bool allowInsecureLoopback = true;
         string saslPolicy = "";
         auto server = new apache::thrift::ThriftServer(saslPolicy, allowInsecureLoopback);
