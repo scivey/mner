@@ -1,0 +1,13 @@
+.deps
+*.log
+*.a
+*.la
+*.o
+config.h
+stamp-h1
+libtool
+Makefile
+config.status
+gtest-config
+gmock-config
+
