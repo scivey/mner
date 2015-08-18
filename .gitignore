@@ -3,5 +3,6 @@ test_data
 *.pyc
 *.pyo
 runner
+static_runner
 test_runner
 

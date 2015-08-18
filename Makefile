@@ -35,6 +35,12 @@ THRIFT_OBJ = $(addsuffix .o, $(THRIFT_ITEMS))
 runner: $(MAIN_OBJ) $(THRIFT_OBJ)
 	$(CXX) $(CPPFLAGS) $(MAIN_OBJ) $(THRIFT_OBJ) -o $@ $(LINK)
 
+STATIC_DYN = -lglog -lgflags -levent -lssl -latomic -lcrypto -ldl -lnuma -lsasl2 -lgssapi_krb5 -liberty -lsnappy -llz4 -llzma -lz -ljemalloc -lblas -pthread
+STATIC_STAT = -lthriftcpp2 -lthrift -lthriftz -lfolly -lwangle -lmitie -ldouble-conversion -lboost_context -lboost_system -lboost_thread -lthrift -lsaslstubs -lthriftcpp2
+STATIC_LINK = -Wl,-Bstatic $(STATIC_STAT) -Wl,-Bdynamic $(STATIC_DYN)
+static_runner: $(MAIN_OBJ) $(THRIFT_OBJ)
+	$(CXX) $(CPPFLAGS) $(MAIN_OBJ) $(THRIFT_OBJ) -o $@ -static $(STATIC_LINK)
+
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
 GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o
 
